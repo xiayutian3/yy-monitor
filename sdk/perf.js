@@ -5,6 +5,9 @@ export default {
   init: (cb) => {
     cb();
 
+    let isDOMReady = false;
+    let isOnload = false;
+
     let Util = {
       getPerfData: (p) => {
         let data = {
@@ -23,20 +26,80 @@ export default {
 
           //前端渲染
           dom: p.domComplete - p.domLoading,  // dom解析时间
+          loadEvent: p.loadEventEnd - p.loadEventStart, // loadEvent时间
+          frontend: p.loadEventEnd - p.domLoading, //前端总时间
 
+          //关键阶段
+          load: p.loadEventEnd - p.navigationStart, //页面完全加载的时间
+          domReady: p.domContentLoadedEventStart - p.navigationStart, //dom准备好时间
+          interactive: p.domInteractive - p.navigationStart, //可操作时间
+          ttfb: p.responseStart - p.navigationStart, //首字节时间
         }
         return data;
+      },
+      //DOM解析完成
+      domready: (callback) => {
+        if (isDOMReady == true) return
+        let timer = null;
+
+        let runCheck = () => {
+          if (performance.timing.domComplete) {
+            //1.停止循环检测，2.运行callback
+            clearTimeout(timer)
+            callback()
+            isDOMReady = true
+          } else {
+            //再去循环检测
+            timer = setTimeout(runCheck, 100)
+          }
+        }
+
+        if (document.readyState == 'interactive') {
+          callback()
+          return;
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+          //开始循环检测，是否 DOMContentLoaded 已经完成
+          runCheck()
+        })
+      },
+      //页面加载完成
+      onload: (callback) => {
+        if (document.readyState == 'complete') {
+          callback()
+          return;
+        }
       }
     }
     let performance = window.performance;
 
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        console.log('performance: ', performance.timing);
-        let perfData = Util.getPerfData(performance.timing)
-        debugger
-
-      }, 100)
+    Util.domready(() => {
+      let perfData = Util.getPerfData(performance.timing)
+      // 获取到数据应该给sdk上层 去上传这个数据
+      debugger
     })
+    Util.onload(() => {
+      let perfData = Util.getPerfData(performance.timing)
+      debugger
+    })
+
+
+    // document.addEventListener('DOMContentLoaded',()=>{
+    //   //DOMContentLoaded事件也会存在同样的问题，所以也要加settimeout
+    //   // let perfData = Util.getPerfData(performance.timing)
+    //   // debugger
+    // })
+
+    // window.addEventListener('load', () => {
+    //   //获取的结果会不一样 所以会加settimeout，不然某些值会出现负数
+    //   // let perfData = Util.getPerfData(performance.timing)
+    //   // debugger
+
+    //   setTimeout(() => {
+    //     console.log('performance: ', performance.timing);
+    //     let perfData = Util.getPerfData(performance.timing)
+    //     debugger
+    //   }, 100)
+    // })
   }
 }
