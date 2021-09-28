@@ -75,12 +75,13 @@ export default {
 
     Util.domready(() => {
       let perfData = Util.getPerfData(performance.timing)
+      console.log('perfData',perfData)
       // 获取到数据应该给sdk上层 去上传这个数据
       debugger
     })
     Util.onload(() => {
       let perfData = Util.getPerfData(performance.timing)
-      debugger
+      // debugger
     })
 
 
