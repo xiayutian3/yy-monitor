@@ -7,9 +7,11 @@
 
   var perf = {
     init: function init(cb) {
-      cb();
+      // cb();
 
       var isDOMReady = false;
+      var isOnload = false;
+      var cycleTime = 100; //这个时间可以延长一点，1 、2 、3s，不影响数据
 
       var Util = {
         getPerfData: function getPerfData(p) {
@@ -53,7 +55,7 @@
               isDOMReady = true;
             } else {
               //再去循环检测
-              timer = setTimeout(runCheck, 100);
+              timer = setTimeout(runCheck, cycleTime);
             }
           };
 
@@ -68,23 +70,48 @@
         },
         //页面加载完成
         onload: function onload(callback) {
+          if (isOnload == true) return;
+          var timer = null;
+
+          var runCheck = function runCheck() {
+            if (performance.timing.loadEventEnd) {
+              //1.停止循环检测，2.运行callback
+              clearTimeout(timer);
+              callback();
+              isOnload = true;
+            } else {
+              //再去循环检测
+              timer = setTimeout(runCheck, cycleTime);
+            }
+          };
+
           if (document.readyState == 'complete') {
             callback();
             return;
           }
+          window.addEventListener('load', function () {
+            //开始循环检测，是否 load 已经完成
+            runCheck();
+          }, false);
         }
       };
       var performance = window.performance;
 
       Util.domready(function () {
         var perfData = Util.getPerfData(performance.timing);
-        console.log('perfData', perfData);
+        // console.log('perfData', perfData)
+        perfData.type = 'domready';
         // 获取到数据应该给sdk上层 去上传这个数据
-        debugger;
+        // debugger
+        cb(perfData);
       });
       Util.onload(function () {
-        Util.getPerfData(performance.timing);
+        var perfData = Util.getPerfData(performance.timing);
+        // console.log('perfData', perfData)
+        perfData.type = 'onload';
+        // 获取到数据应该给sdk上层 去上传这个数据
         // debugger
+        cb(perfData);
       });
 
       // document.addEventListener('DOMContentLoaded',()=>{
@@ -107,6 +134,51 @@
     }
   };
 
+  var util = {
+    //资源加载结束后，调用回调
+    onload: function onload(cb) {
+      if (document.readyState == 'complete') {
+        cb();
+        return;
+      } else {
+        window.addEventListener('load', function () {
+          cb();
+        });
+      }
+    }
+  };
+
+  //资源加载监控
+
+  var resolvePerformanceResource = function resolvePerformanceResource(resourceData) {
+    var r = resourceData;
+    debugger;
+    var o = {
+      initiatorType: r.initiatorType, //请求资源类型
+      name: r.name, //资源名称
+      duration: parseInt(r.duration), //请求资源加载了多长时间
+
+      //连接过程
+      redirect: r.redirectEnd - r.redirectStart, //重定向时间
+      dns: r.domainLookupEnd - r.domainLookupStart //DNS查找时间
+
+
+    };
+    return o;
+  };
+
+  var resource = {
+    init: function init(cb) {
+      //资源加载结束后
+      util.onload(function () {
+        var entries = performance.getEntriesByType('resource');
+        // console.log('entries: ', entries);
+        resolvePerformanceResource(entries[0]);
+        debugger;
+      });
+    }
+  };
+
   //错误捕获
 
   var errorCatch = {
@@ -115,9 +187,18 @@
     }
   };
 
-  perf.init(function () {
-    console.log('perf init');
+  //性能指标
+  perf.init(function (perfData) {
+    //performance timing
+    // console.log('perfData: ', perfData);
+    // console.log('perf init')
   });
+
+  //资源监控
+  resource.init(function (resource) {
+    console.log('resource: ', resource);
+  });
+
   errorCatch.init(function () {
     console.log('errorCatch init');
   });

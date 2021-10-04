@@ -3,10 +3,11 @@
 
 export default {
   init: (cb) => {
-    cb();
+    // cb();
 
     let isDOMReady = false;
     let isOnload = false;
+    let cycleTime = 100;  //这个时间可以延长一点，1 、2 、3s，不影响数据
 
     let Util = {
       getPerfData: (p) => {
@@ -50,7 +51,7 @@ export default {
             isDOMReady = true
           } else {
             //再去循环检测
-            timer = setTimeout(runCheck, 100)
+            timer = setTimeout(runCheck, cycleTime)
           }
         }
 
@@ -65,23 +66,49 @@ export default {
       },
       //页面加载完成
       onload: (callback) => {
+        if (isOnload == true) return
+        let timer = null;
+
+        let runCheck = () => {
+          if (performance.timing.loadEventEnd ) {
+            //1.停止循环检测，2.运行callback
+            clearTimeout(timer)
+            callback()
+            isOnload = true
+          } else {
+            //再去循环检测
+            timer = setTimeout(runCheck,cycleTime)
+          }
+        }
+
         if (document.readyState == 'complete') {
           callback()
           return;
         }
+        window.addEventListener('load', () => {
+          //开始循环检测，是否 load 已经完成
+          runCheck()
+        },false)
+
       }
     }
     let performance = window.performance;
 
     Util.domready(() => {
       let perfData = Util.getPerfData(performance.timing)
-      console.log('perfData',perfData)
+      // console.log('perfData', perfData)
+      perfData.type = 'domready'
       // 获取到数据应该给sdk上层 去上传这个数据
-      debugger
+      // debugger
+      cb(perfData)
     })
     Util.onload(() => {
       let perfData = Util.getPerfData(performance.timing)
+      // console.log('perfData', perfData)
+      perfData.type = 'onload'
+      // 获取到数据应该给sdk上层 去上传这个数据
       // debugger
+      cb(perfData)
     })
 
 
