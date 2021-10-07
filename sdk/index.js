@@ -1,7 +1,7 @@
 import perf from './perf'
 import resource from './resource'
-import xhrHook from './xhrHook'
 import errorCatch from './errorCatch'
+import xhrHook from './xhrHook'
 
 
 //性能指标
@@ -17,11 +17,12 @@ import errorCatch from './errorCatch'
 // })
 
 //请求监控
-xhrHook.init((xhrData)=>{
-  console.log('xhrData: ', xhrData);
+// console.log('xhrHook: ', xhrHook);
+xhrHook.init((infoData)=>{
+  console.log('infoData: ', infoData);
 })
 
 //错误捕获
-errorCatch.init(()=>{
-  console.log('errorCatch init')
-})
+// errorCatch.init(()=>{
+//   console.log('errorCatch init')
+// })

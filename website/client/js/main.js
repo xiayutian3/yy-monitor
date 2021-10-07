@@ -8,7 +8,7 @@ $.ajax({
   })
 }).then(res=>{
   console.log('res: ', res);
-  debugger
+  // debugger
 }).catch(error=>{
   console.log('error: ', error);
 })
