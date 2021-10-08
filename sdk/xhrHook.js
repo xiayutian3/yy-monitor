@@ -65,5 +65,40 @@ export default {
 
       return _originSend.apply(this, arguments)
     }
+
+
+    //fetch hook
+    if (window.fetch) {
+      let _origin_fetch = window.fetch
+      window.fetch = function () {
+        let startTime = Date.now()
+        let args = [].slice.call(arguments)
+
+        let method = 'GET'
+        let url = null
+
+        let fetchInput = args[0]
+        if (typeof fetchInput === 'string') {
+          url = fetchInput
+        } else if ('Request' in window && fetchInput instanceof window.fetch) {
+          url = fetchInput.url
+          method = fetchInput.method ? fetchInput.method : method
+        } else {
+          url = '' + fetchInput
+        }
+
+        //要上报的数据
+        let yy_fetch_data = {
+          method, url, status: null
+        }
+        return _origin_fetch.apply(this, args).then(response => {
+          yy_fetch_data.status = response.status
+          yy_fetch_data.type = 'fetch'
+          yy_fetch_data.duration = Date.now() - startTime
+          cb(yy_fetch_data)
+          return response
+        })
+      }
+    }
   }
 }

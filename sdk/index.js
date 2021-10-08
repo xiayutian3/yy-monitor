@@ -18,11 +18,11 @@ import xhrHook from './xhrHook'
 
 //请求监控
 // console.log('xhrHook: ', xhrHook);
-xhrHook.init((infoData)=>{
-  console.log('infoData: ', infoData);
-})
+// xhrHook.init((infoData)=>{
+//   console.log('infoData: ', infoData);
+// })
 
 //错误捕获
-// errorCatch.init(()=>{
-//   console.log('errorCatch init')
-// })
+errorCatch.init(()=>{
+  console.log('errorCatch init')
+})
