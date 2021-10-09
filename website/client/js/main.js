@@ -31,5 +31,5 @@ function b() {
 function c() {
   x = y + z
 }
-a()
+// a()
 console.log('end')

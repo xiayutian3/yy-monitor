@@ -23,6 +23,6 @@ import xhrHook from './xhrHook'
 // })
 
 //错误捕获
-errorCatch.init(()=>{
-  console.log('errorCatch init')
+errorCatch.init((errorInfo)=>{
+  console.log('errorInfo',errorInfo)
 })
