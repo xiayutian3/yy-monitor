@@ -1,5 +1,7 @@
 // 请求监控
 
+//自身的请求无需拦截，比如上报请求无需拦截
+
 export default {
   init: (cb) => {
     console.log('xhr monitor')
