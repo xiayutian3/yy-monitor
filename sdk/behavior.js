@@ -46,7 +46,7 @@ let getXpath = (ele) => {
   let currentEle = ele
   while (currentEle !== document.body) {
     xpath = getIndex(currentEle) + '/' + xpath;
-    debugger
+    // debugger
     currentEle = currentEle.parentNode
   }
   debugger
